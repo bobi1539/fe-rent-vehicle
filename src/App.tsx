@@ -17,6 +17,7 @@ import Alerts from './pages/UiElements/Alerts';
 import Buttons from './pages/UiElements/Buttons';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
+import EmailVerification from './pages/Authentication/EmailVerification';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -152,6 +153,15 @@ function App() {
             <>
               <PageTitle title="Daftar | Sewa Kendaraan" />
               <SignUp />
+            </>
+          }
+        />
+        <Route
+          path="/auth/email-verification"
+          element={
+            <>
+              <PageTitle title="Verifikasi Email | Sewa Kendaraan" />
+              <EmailVerification />
             </>
           }
         />

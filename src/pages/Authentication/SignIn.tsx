@@ -37,10 +37,18 @@ const SignIn: React.FC = () => {
         handlePostSuccess(response);
         const token = response.data.data.token;
         Cookies.set(JWT_TOKEN, token, { expires: 365 });
+        setData(emptyData());
       })
       .catch((error) => {
         handleError(error);
       });
+  };
+
+  const emptyData = () => {
+    return {
+      email: '',
+      password: '',
+    };
   };
 
   return (
@@ -62,6 +70,7 @@ const SignIn: React.FC = () => {
                   isRequired={true}
                   icon={CiMail}
                   onChange={handleInputChange}
+                  value={data.email}
                 />
                 <InputWithRightIcon
                   label="Password"
@@ -71,6 +80,7 @@ const SignIn: React.FC = () => {
                   isRequired={true}
                   icon={CiLock}
                   onChange={handleInputChange}
+                  value={data.password}
                 />
                 <div className="mb-5">
                   <InputSubmit value="Login" />

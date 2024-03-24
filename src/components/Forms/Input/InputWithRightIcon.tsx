@@ -9,6 +9,7 @@ interface InputWithRightIconProps {
   isRequired: boolean;
   icon: IconType;
   onChange: (name: string, value: any) => void;
+  value: any;
 }
 
 const InputWithRightIcon: React.FC<InputWithRightIconProps> = ({
@@ -19,6 +20,7 @@ const InputWithRightIcon: React.FC<InputWithRightIconProps> = ({
   isRequired,
   icon: IconComponent,
   onChange,
+  value,
 }) => {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(name, event.target.value);
@@ -40,6 +42,7 @@ const InputWithRightIcon: React.FC<InputWithRightIconProps> = ({
             dark:text-white dark:focus:border-primary"
           required={isRequired}
           onChange={handleChange}
+          value={value}
         />
 
         <span className="absolute right-4 top-4">

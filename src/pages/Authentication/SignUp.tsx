@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import LeftAuth from '../../components/LeftAuth';
 import InputWithRightIcon from '../../components/Forms/Input/InputWithRightIcon';
@@ -7,6 +7,10 @@ import { CiLock } from 'react-icons/ci';
 import { CiMail } from 'react-icons/ci';
 import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
+import axios from 'axios';
+import { AUTH_REGISTER } from '../../constants/constant';
+import { handleError } from '../../service/customAxios';
+import { toast } from 'react-toastify';
 
 const SignUp: React.FC = () => {
   const [data, setData] = useState({
@@ -23,8 +27,36 @@ const SignUp: React.FC = () => {
     }));
   };
 
-  const handleRegister = () => {
-    console.log(data);
+  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const userData = {
+      fullName: data.fullName,
+      email: data.email,
+      password: data.password,
+      repeatPassword: data.repeatPassword,
+    };
+
+    axios
+      .post(AUTH_REGISTER, userData)
+      .then((response) => {
+        console.log(response);
+        setData(emptyData());
+        toast.success(
+          'Registrasi Berhasil. Silahkan Verifikasi Email Dengan Link Yang Telah Dikirim Ke Email.',
+        );
+      })
+      .catch((error) => {
+        handleError(error);
+      });
+  };
+
+  const emptyData = () => {
+    return {
+      fullName: '',
+      email: '',
+      password: '',
+      repeatPassword: '',
+    };
   };
 
   return (
@@ -37,7 +69,7 @@ const SignUp: React.FC = () => {
               <h2 className="mb-9 text-2xl font-bold text-black dark:text-white sm:text-title-xl2">
                 Daftar
               </h2>
-              <form>
+              <form onSubmit={handleRegister}>
                 <InputWithRightIcon
                   label="Nama Lengkap"
                   type="text"
@@ -46,6 +78,7 @@ const SignUp: React.FC = () => {
                   isRequired={true}
                   icon={CiUser}
                   onChange={handleInputChange}
+                  value={data.fullName}
                 />
                 <InputWithRightIcon
                   label="Email"
@@ -55,6 +88,7 @@ const SignUp: React.FC = () => {
                   isRequired={true}
                   icon={CiMail}
                   onChange={handleInputChange}
+                  value={data.email}
                 />
                 <InputWithRightIcon
                   label="Password"
@@ -64,6 +98,7 @@ const SignUp: React.FC = () => {
                   isRequired={true}
                   icon={CiLock}
                   onChange={handleInputChange}
+                  value={data.password}
                 />
                 <InputWithRightIcon
                   label="Ulangi Password"
@@ -73,9 +108,10 @@ const SignUp: React.FC = () => {
                   isRequired={true}
                   icon={CiLock}
                   onChange={handleInputChange}
+                  value={data.repeatPassword}
                 />
                 <div className="mb-5">
-                  <InputSubmit value="Buat Akun" onClick={handleRegister} />
+                  <InputSubmit value="Buat Akun" />
                 </div>
                 <ButtonWithGoogle label="Daftar Dengan Google" />
                 <div className="mt-6 text-center">
