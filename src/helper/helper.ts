@@ -1,6 +1,8 @@
 import { toast } from 'react-toastify';
+import { JWT_TOKEN } from '../constants/constant';
+import Cookies from 'js-cookie';
 
-function handlePostSuccess(response: any) {
+function handleSuccess(response: any) {
   const successMessage = response.data.message.split('|')[1];
   toast.success(successMessage);
 }
@@ -19,4 +21,8 @@ function handleError(error: any) {
   toast.error(message);
 }
 
-export { handlePostSuccess, handleError };
+function setCookie(token: string) {
+  Cookies.set(JWT_TOKEN, token, { expires: 365 });
+}
+
+export { handleSuccess, handleError, setCookie };

@@ -7,7 +7,7 @@ import { CiMail } from 'react-icons/ci';
 import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
 import axios from 'axios';
-import { handleError, handlePostSuccess } from '../../service/customAxios';
+import { handleError, handleSuccess, setCookie } from '../../helper/helper';
 import { AUTH_LOGIN, JWT_TOKEN } from '../../constants/constant';
 import Cookies from 'js-cookie';
 
@@ -34,9 +34,9 @@ const SignIn: React.FC = () => {
     axios
       .post(AUTH_LOGIN, userData)
       .then((response) => {
-        handlePostSuccess(response);
+        handleSuccess(response);
         const token = response.data.data.token;
-        Cookies.set(JWT_TOKEN, token, { expires: 365 });
+        setCookie(token);
         setData(emptyData());
       })
       .catch((error) => {

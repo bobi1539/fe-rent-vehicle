@@ -9,7 +9,7 @@ import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
 import axios from 'axios';
 import { AUTH_REGISTER } from '../../constants/constant';
-import { handleError } from '../../service/customAxios';
+import { handleError } from '../../helper/helper';
 import { toast } from 'react-toastify';
 
 const SignUp: React.FC = () => {
