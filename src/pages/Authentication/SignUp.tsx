@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import LeftAuth from '../../components/LeftAuth';
 import InputWithRightIcon from '../../components/Forms/Input/InputWithRightIcon';
 import { CiUser } from 'react-icons/ci';
@@ -11,8 +11,11 @@ import axios from 'axios';
 import { AUTH_REGISTER } from '../../constants/constant';
 import { handleError } from '../../helper/helper';
 import { toast } from 'react-toastify';
+import useIsAuthenticated from 'react-auth-kit/hooks/useIsAuthenticated';
+import { FE_DASHBOARD } from '../../constants/feEndpoint';
 
 const SignUp: React.FC = () => {
+  const isAuthenticated = useIsAuthenticated();
   const [data, setData] = useState({
     fullName: '',
     email: '',
@@ -59,7 +62,9 @@ const SignUp: React.FC = () => {
     };
   };
 
-  return (
+  return isAuthenticated ? (
+    <Navigate to={FE_DASHBOARD} />
+  ) : (
     <div className="mx-5 my-10">
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center">

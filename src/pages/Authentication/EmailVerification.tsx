@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import LogoDark from '../../images/logo/logo-dark.svg';
 import Logo from '../../images/logo/logo.svg';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AUTH_EMAIL_VERIFICATION } from '../../constants/constant';
-import { handleError, handleSuccess, setCookie } from '../../helper/helper';
+import { handleError, handleSuccess, setDataCookie } from '../../helper/helper';
+import useSignIn from 'react-auth-kit/hooks/useSignIn';
+import { FE_AUTH_LOGIN, FE_DASHBOARD } from '../../constants/feEndpoint';
 
 const EmailVerification: React.FC = () => {
   const location = useLocation();
-  const [isRedirect, setIsRedirect] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const signIn = useSignIn();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,17 +25,26 @@ const EmailVerification: React.FC = () => {
         });
         handleSuccess(response);
         const jwtToken = response.data.data.token;
-        setCookie(jwtToken);
+        const email = response.data.data.email;
+        const fullName = response.data.data.fullName;
+        if (signIn(setDataCookie(jwtToken, email, fullName))) {
+          navigateTo(FE_DASHBOARD);
+        } else {
+          navigateTo(FE_AUTH_LOGIN);
+        }
       } catch (error) {
         handleError(error);
-      } finally {
-        setTimeout(() => {
-          setIsRedirect(true);
-        }, 2000);
+        navigateTo(FE_AUTH_LOGIN);
       }
     };
     fetchData();
   }, []);
+
+  const navigateTo = (url: string) => {
+    setTimeout(() => {
+      navigate(url);
+    }, 2000);
+  };
 
   return (
     <div className="mx-5 flex items-center justify-center h-screen">
@@ -54,7 +66,6 @@ const EmailVerification: React.FC = () => {
           ></div>
         </div>
       </div>
-      {isRedirect && <Navigate replace to="/auth/signin" />}
     </div>
   );
 };

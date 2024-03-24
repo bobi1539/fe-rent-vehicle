@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import UserOne from '../../images/user/user-01.png';
+import useSignOut from 'react-auth-kit/hooks/useSignOut';
+import { AUTH_LOGIN } from '../../constants/constant';
+import { FE_AUTH_LOGIN } from '../../constants/feEndpoint';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const signOut = useSignOut();
+  const navigate = useNavigate();
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
@@ -34,6 +39,11 @@ const DropdownUser = () => {
     document.addEventListener('keydown', keyHandler);
     return () => document.removeEventListener('keydown', keyHandler);
   });
+
+  const logout = () => {
+    signOut();
+    navigate(FE_AUTH_LOGIN);
+  };
 
   return (
     <div className="relative">
@@ -153,7 +163,10 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+        <button
+          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+          onClick={() => logout()}
+        >
           <svg
             className="fill-current"
             width="22"

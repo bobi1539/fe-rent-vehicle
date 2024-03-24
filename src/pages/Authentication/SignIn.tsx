@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import LeftAuth from '../../components/LeftAuth';
 import InputWithRightIcon from '../../components/Forms/Input/InputWithRightIcon';
 import { CiLock } from 'react-icons/ci';
@@ -7,11 +7,17 @@ import { CiMail } from 'react-icons/ci';
 import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
 import axios from 'axios';
-import { handleError, handleSuccess, setCookie } from '../../helper/helper';
-import { AUTH_LOGIN, JWT_TOKEN } from '../../constants/constant';
-import Cookies from 'js-cookie';
+import { handleError, handleSuccess, setDataCookie } from '../../helper/helper';
+import { AUTH_LOGIN } from '../../constants/constant';
+import { FE_AUTH_LOGIN, FE_DASHBOARD } from '../../constants/feEndpoint';
+import useSignIn from 'react-auth-kit/hooks/useSignIn';
+import useIsAuthenticated from 'react-auth-kit/hooks/useIsAuthenticated';
 
 const SignIn: React.FC = () => {
+  const navigate = useNavigate();
+  const signIn = useSignIn();
+  const isAuthenticated = useIsAuthenticated();
+
   const [data, setData] = useState({
     email: '',
     password: '',
@@ -36,7 +42,15 @@ const SignIn: React.FC = () => {
       .then((response) => {
         handleSuccess(response);
         const token = response.data.data.token;
-        setCookie(token);
+        const email = response.data.data.email;
+        const fullName = response.data.data.fullName;
+
+        if (signIn(setDataCookie(token, email, fullName))) {
+          navigate(FE_DASHBOARD);
+        } else {
+          navigate(FE_AUTH_LOGIN);
+        }
+
         setData(emptyData());
       })
       .catch((error) => {
@@ -51,7 +65,9 @@ const SignIn: React.FC = () => {
     };
   };
 
-  return (
+  return isAuthenticated ? (
+    <Navigate to={FE_DASHBOARD} />
+  ) : (
     <div className="mx-5 my-10">
       <div className="rounded-md border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center">
