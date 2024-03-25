@@ -8,7 +8,11 @@ import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
 import axios from 'axios';
 import { handleError, handleSuccess, setDataCookie } from '../../helper/helper';
-import { AUTH_LOGIN, GOOGLE_APIS_PROFILE } from '../../constants/constant';
+import {
+  AUTH_LOGIN,
+  AUTH_REGISTER_EMAIL,
+  GOOGLE_APIS_PROFILE,
+} from '../../constants/constant';
 import {
   FE_AUTH_LOGIN,
   FE_AUTH_REGISTER,
@@ -19,6 +23,7 @@ import useIsAuthenticated from 'react-auth-kit/hooks/useIsAuthenticated';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useDispatch } from 'react-redux';
 import { setUserFromGoogle } from '../../store/action';
+import { toast } from 'react-toastify';
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
@@ -80,16 +85,7 @@ const SignIn: React.FC = () => {
             Authorization: `Bearer ${tokenResponse.access_token}`,
           },
         });
-        console.log(response);
-        dispatch(
-          setUserFromGoogle(
-            response.data.email,
-            response.data.name,
-            true,
-            true,
-          ),
-        );
-        navigate(FE_AUTH_REGISTER);
+        processLoginWithGoogle(response.data.email, response.data.name);
       } catch (error) {
         handleError(error);
       }
@@ -98,6 +94,33 @@ const SignIn: React.FC = () => {
       handleError(error);
     },
   });
+
+  const processLoginWithGoogle = (email: string, name: string): void => {
+    const apiKey = import.meta.env.VITE_API_KEY;
+    const data = {
+      apiKey: apiKey,
+      email: email,
+    };
+
+    axios
+      .post(AUTH_REGISTER_EMAIL, data)
+      .then((response) => {
+        const isRegistered = response.data.data.registered;
+        if (isRegistered) {
+          toast.info('Silahkan Masukkan Password Untuk Login');
+          setData({
+            email: email,
+            password: '',
+          });
+        } else {
+          dispatch(setUserFromGoogle(email, name, true, true));
+          navigate(FE_AUTH_REGISTER);
+        }
+      })
+      .catch((error) => {
+        handleError(error);
+      });
+  };
 
   return isAuthenticated ? (
     <Navigate to={FE_DASHBOARD} />
