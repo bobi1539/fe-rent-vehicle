@@ -10,6 +10,7 @@ interface InputWithRightIconProps {
   icon: IconType;
   onChange: (name: string, value: any) => void;
   value: any;
+  isDisabled?: boolean;
 }
 
 const InputWithRightIcon: React.FC<InputWithRightIconProps> = ({
@@ -21,6 +22,7 @@ const InputWithRightIcon: React.FC<InputWithRightIconProps> = ({
   icon: IconComponent,
   onChange,
   value,
+  isDisabled,
 }) => {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(name, event.target.value);
@@ -43,6 +45,7 @@ const InputWithRightIcon: React.FC<InputWithRightIconProps> = ({
           required={isRequired}
           onChange={handleChange}
           value={value}
+          disabled={isDisabled}
         />
 
         <span className="absolute right-4 top-4">

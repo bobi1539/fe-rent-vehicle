@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import LeftAuth from '../../components/LeftAuth';
 import InputWithRightIcon from '../../components/Forms/Input/InputWithRightIcon';
 import { CiUser } from 'react-icons/ci';
@@ -8,20 +8,37 @@ import { CiMail } from 'react-icons/ci';
 import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
 import axios from 'axios';
-import { AUTH_REGISTER } from '../../constants/constant';
+import {
+  AUTH_REGISTER,
+  AUTH_REGISTER_WITH_GOOGLE,
+  GOOGLE_APIS_PROFILE,
+} from '../../constants/constant';
 import { handleError } from '../../helper/helper';
 import { toast } from 'react-toastify';
 import useIsAuthenticated from 'react-auth-kit/hooks/useIsAuthenticated';
-import { FE_DASHBOARD } from '../../constants/feEndpoint';
+import { FE_AUTH_LOGIN, FE_DASHBOARD } from '../../constants/feEndpoint';
+import { useGoogleLogin } from '@react-oauth/google';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUserFromGoogle } from '../../store/action';
 
 const SignUp: React.FC = () => {
+  const { email, fullName, isFromGoogle, isInputDisabled } = useSelector(
+    (state: any) => state.userFromGoogle,
+  );
   const isAuthenticated = useIsAuthenticated();
+  const [emailWithGoogle, setEmailWithGoogle] = useState<string>(email);
+  const [isRegisterWithGoogle, setIsRegisterWithGoogle] =
+    useState<boolean>(isFromGoogle);
+  const [isInputEmailDisabled, setIsInputEmailDisabled] =
+    useState<boolean>(isInputDisabled);
   const [data, setData] = useState({
-    fullName: '',
-    email: '',
+    fullName: fullName,
+    email: email,
     password: '',
     repeatPassword: '',
   });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleInputChange = (name: string, value: any) => {
     setData((prevData) => ({
@@ -37,19 +54,38 @@ const SignUp: React.FC = () => {
       email: data.email,
       password: data.password,
       repeatPassword: data.repeatPassword,
+      isActive: false,
     };
 
+    let signUpApi = '';
+    let toastMessage = '';
+    if (isRegisterWithGoogle) {
+      if (emailWithGoogle != userData.email) {
+        toast.error('Email Not Valid');
+        return;
+      }
+      signUpApi = AUTH_REGISTER_WITH_GOOGLE;
+      userData.isActive = true;
+      toastMessage = 'Registrasi Berhasil. Silahkan Login.';
+    } else {
+      signUpApi = AUTH_REGISTER;
+      toastMessage =
+        'Registrasi Berhasil. Silahkan Verifikasi Email Dengan Link Yang Telah Dikirim Ke Email.';
+    }
+
     axios
-      .post(AUTH_REGISTER, userData)
+      .post(signUpApi, userData)
       .then((response) => {
         console.log(response);
         setData(emptyData());
-        toast.success(
-          'Registrasi Berhasil. Silahkan Verifikasi Email Dengan Link Yang Telah Dikirim Ke Email.',
-        );
+        toast.success(toastMessage);
+        navigate(FE_AUTH_LOGIN);
       })
       .catch((error) => {
         handleError(error);
+      })
+      .finally(() => {
+        dispatch(setUserFromGoogle('', '', false, false));
       });
   };
 
@@ -61,6 +97,32 @@ const SignUp: React.FC = () => {
       repeatPassword: '',
     };
   };
+
+  const registerWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const response = await axios.get(GOOGLE_APIS_PROFILE, {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
+        setData({
+          fullName: response.data.name,
+          email: response.data.email,
+          password: '',
+          repeatPassword: '',
+        });
+        setEmailWithGoogle(response.data.email);
+        setIsRegisterWithGoogle(true);
+        setIsInputEmailDisabled(true);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
 
   return isAuthenticated ? (
     <Navigate to={FE_DASHBOARD} />
@@ -94,6 +156,7 @@ const SignUp: React.FC = () => {
                   icon={CiMail}
                   onChange={handleInputChange}
                   value={data.email}
+                  isDisabled={isInputEmailDisabled}
                 />
                 <InputWithRightIcon
                   label="Password"
@@ -118,7 +181,10 @@ const SignUp: React.FC = () => {
                 <div className="mb-5">
                   <InputSubmit value="Buat Akun" />
                 </div>
-                <ButtonWithGoogle label="Daftar Dengan Google" />
+                <ButtonWithGoogle
+                  onClick={() => registerWithGoogle()}
+                  label="Daftar Dengan Google"
+                />
                 <div className="mt-6 text-center">
                   <p>
                     Sudah Punya Akun?{' '}

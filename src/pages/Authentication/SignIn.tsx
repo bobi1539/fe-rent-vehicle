@@ -8,16 +8,23 @@ import InputSubmit from '../../components/Forms/Input/InputSubmit';
 import ButtonWithGoogle from '../../components/Button/ButtonWithGoogle';
 import axios from 'axios';
 import { handleError, handleSuccess, setDataCookie } from '../../helper/helper';
-import { AUTH_LOGIN } from '../../constants/constant';
-import { FE_AUTH_LOGIN, FE_DASHBOARD } from '../../constants/feEndpoint';
+import { AUTH_LOGIN, GOOGLE_APIS_PROFILE } from '../../constants/constant';
+import {
+  FE_AUTH_LOGIN,
+  FE_AUTH_REGISTER,
+  FE_DASHBOARD,
+} from '../../constants/feEndpoint';
 import useSignIn from 'react-auth-kit/hooks/useSignIn';
 import useIsAuthenticated from 'react-auth-kit/hooks/useIsAuthenticated';
+import { useGoogleLogin } from '@react-oauth/google';
+import { useDispatch } from 'react-redux';
+import { setUserFromGoogle } from '../../store/action';
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
   const signIn = useSignIn();
   const isAuthenticated = useIsAuthenticated();
-
+  const dispatch = useDispatch();
   const [data, setData] = useState({
     email: '',
     password: '',
@@ -65,6 +72,33 @@ const SignIn: React.FC = () => {
     };
   };
 
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const response = await axios.get(GOOGLE_APIS_PROFILE, {
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+          },
+        });
+        console.log(response);
+        dispatch(
+          setUserFromGoogle(
+            response.data.email,
+            response.data.name,
+            true,
+            true,
+          ),
+        );
+        navigate(FE_AUTH_REGISTER);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    onError: (error) => {
+      handleError(error);
+    },
+  });
+
   return isAuthenticated ? (
     <Navigate to={FE_DASHBOARD} />
   ) : (
@@ -101,7 +135,10 @@ const SignIn: React.FC = () => {
                 <div className="mb-5">
                   <InputSubmit value="Login" />
                 </div>
-                <ButtonWithGoogle label="Login Dengan Google" />
+                <ButtonWithGoogle
+                  onClick={() => loginWithGoogle()}
+                  label="Login Dengan Google"
+                />
                 <div className="mt-6 text-center">
                   <p>
                     Belum Punya Akun?{' '}
